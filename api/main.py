@@ -121,11 +121,15 @@ def predict_loan(application: LoanApplication):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ── Serve frontend ───────────────────────────────────────────────────────────
-frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
+# ── Serve frontend ─────────────────────────────────────────────
+frontend_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "frontend"
+)
+
 if os.path.isdir(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
-    @app.get("/app", include_in_schema=False)
+    @app.get("/")
     def serve_frontend():
-        return FileResponse("frontend/index.html")
+        return FileResponse(os.path.join(frontend_dir, "index.html"))
