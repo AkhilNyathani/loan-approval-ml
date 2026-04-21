@@ -124,7 +124,7 @@ def predict_loan(application: LoanApplication):
 # ── Serve frontend ───────────────────────────────────────────────────────────
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 if os.path.isdir(frontend_dir):
-    app.mount("/app", StaticFiles(directory=frontend_dir, html=True), name="frontend")
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
     @app.get("/app", include_in_schema=False)
     def serve_frontend():
