@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Logistic Regression",
+    "accuracy": 0.8293,
+    "roc_auc": 0.8551,
+    "confusion_matrix": [
+      [
+        27,
+        11
+      ],
+      [
+        10,
+        75
+      ]
+    ]
+  },
+  {
+    "name": "Random Forest",
+    "accuracy": 0.813,
+    "roc_auc": 0.8059,
+    "confusion_matrix": [
+      [
+        24,
+        14
+      ],
+      [
+        9,
+        76
+      ]
+    ]
+  },
+  {
+    "name": "XGBoost",
+    "accuracy": 0.8211,
+    "roc_auc": 0.7867,
+    "confusion_matrix": [
+      [
+        24,
+        14
+      ],
+      [
+        8,
+        77
+      ]
+    ]
+  }
+]

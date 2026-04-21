@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LoanIQ — Approval Prediction</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:      #0d0f14;
+      --paper:    #f5f2eb;
+      --cream:    #ede9df;
+      --gold:     #b8860b;
+      --gold-lt:  #d4a017;
+      --sage:     #5a7055;
+      --rose:     #8b3a3a;
+      --muted:    #6b6557;
+      --border:   #d5cfc3;
+      --radius:   4px;
+      --shadow:   0 2px 20px rgba(13,15,20,.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Grain texture overlay ───────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 999;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--paper);
+    }
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .logo span { color: var(--gold); }
+    .badge {
+      font-size: .7rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted);
+      border: 1px solid var(--border); padding: .25rem .65rem;
+      border-radius: 20px;
+    }
+
+    /* ── Hero ────────────────────────────────────────────────────── */
+    .hero {
+      padding: 4rem 2.5rem 2.5rem;
+      max-width: 760px; margin: 0 auto; text-align: center;
+    }
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      margin-bottom: 1rem;
+    }
+    .hero h1 em { font-style: italic; color: var(--gold); }
+    .hero p {
+      color: var(--muted); font-size: 1.05rem; line-height: 1.65;
+      max-width: 520px; margin: 0 auto 1.5rem;
+    }
+    .accuracy-pill {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: var(--cream); border: 1px solid var(--border);
+      padding: .4rem 1rem; border-radius: 20px;
+      font-size: .82rem; color: var(--muted);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); }
+
+    /* ── Main Layout ─────────────────────────────────────────────── */
+    main {
+      flex: 1;
+      max-width: 900px; margin: 0 auto; width: 100%;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* ── Card ────────────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 2.5rem;
+    }
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      margin-bottom: .3rem;
+    }
+    .card-sub { font-size: .85rem; color: var(--muted); margin-bottom: 2rem; }
+
+    /* ── Section Divider ─────────────────────────────────────────── */
+    .section-label {
+      font-size: .72rem; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 1.5rem; margin: 1.75rem 0 1.25rem;
+    }
+
+    /* ── Form Grid ───────────────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.1rem;
+    }
+    .field { display: flex; flex-direction: column; gap: .4rem; }
+    .field label {
+      font-size: .8rem; font-weight: 500; color: var(--muted);
+      letter-spacing: .02em;
+    }
+    .field input,
+    .field select {
+      padding: .62rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--paper);
+      font-family: inherit; font-size: .92rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6557' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .85rem center;
+      padding-right: 2.2rem;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,134,11,.12);
+    }
+
+    /* ── Submit Button ───────────────────────────────────────────── */
+    .submit-row { margin-top: 2rem; display: flex; justify-content: flex-end; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: var(--ink);
+      color: #fff;
+      font-family: inherit; font-size: .92rem; font-weight: 500;
+      padding: .8rem 2rem;
+      border: none; border-radius: var(--radius);
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      letter-spacing: .01em;
+    }
+    .btn-primary:hover { background: #1e2330; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary svg { transition: transform .2s; }
+    .btn-primary:hover svg { transform: translateX(3px); }
+
+    /* ── Spinner ─────────────────────────────────────────────────── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result Panel ────────────────────────────────────────────── */
+    #result {
+      margin-top: 1.75rem;
+      display: none;
+      animation: fadeSlide .4s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-approved,
+    .result-rejected {
+      border-radius: 10px;
+      padding: 1.75rem;
+      display: flex; align-items: flex-start; gap: 1.25rem;
+    }
+    .result-approved { background: #f0f7f0; border: 1.5px solid #a8c9a0; }
+    .result-rejected { background: #fdf0f0; border: 1.5px solid #d9a0a0; }
+
+    .result-icon {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 1.4rem;
+    }
+    .result-approved .result-icon { background: #c8e6c4; }
+    .result-rejected .result-icon { background: #f5c6c6; }
+
+    .result-body h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem; margin-bottom: .3rem;
+    }
+    .result-approved h2 { color: var(--sage); }
+    .result-rejected h2 { color: var(--rose); }
+
+    .result-body p { font-size: .9rem; color: var(--muted); line-height: 1.5; }
+
+    .prob-bar-wrap { margin-top: 1rem; }
+    .prob-label {
+      font-size: .75rem; color: var(--muted);
+      display: flex; justify-content: space-between; margin-bottom: .35rem;
+    }
+    .prob-bar {
+      height: 6px; background: var(--cream); border-radius: 3px; overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+    }
+    .result-approved .prob-fill { background: var(--sage); }
+    .result-rejected .prob-fill { background: var(--rose); }
+
+    /* ── Error ───────────────────────────────────────────────────── */
+    .error-box {
+      background: #fff8f0; border: 1px solid #e8c49a;
+      border-radius: 8px; padding: 1rem 1.25rem;
+      font-size: .88rem; color: #7a4f1a;
+      margin-top: 1rem; display: none;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.25rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: .78rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">Loan<span>IQ</span></div>
+  <div class="badge">ML Prediction System</div>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>Predict your loan<br><em>approval chances</em></h1>
+  <p>Our machine-learning model analyses your financial profile and provides an instant eligibility assessment.</p>
+  <div class="accuracy-pill">
+    <div class="dot"></div>
+    AI-powered · Trained on real loan data
+  </div>
+</div>
+
+<!-- Main Form -->
+<main>
+  <div class="card">
+    <div class="card-title">Applicant Details</div>
+    <div class="card-sub">Fill in all fields to generate your prediction.</div>
+
+    <!-- Personal Info -->
+    <div class="section-label">Personal Information</div>
+    <div class="grid">
+      <div class="field">
+        <label>Gender</label>
+        <select id="Gender">
+          <option value="">Select…</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Marital Status</label>
+        <select id="Married">
+          <option value="">Select…</option>
+          <option value="Yes">Married</option>
+          <option value="No">Single</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Dependents</label>
+        <select id="Dependents">
+          <option value="">Select…</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3+">3 or more</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Education</label>
+        <select id="Education">
+          <option value="">Select…</option>
+          <option value="Graduate">Graduate</option>
+          <option value="Not Graduate">Not Graduate</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Self Employed</label>
+        <select id="Self_Employed">
+          <option value="">Select…</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Property Area</label>
+        <select id="Property_Area">
+          <option value="">Select…</option>
+          <option value="Urban">Urban</option>
+          <option value="Semiurban">Semiurban</option>
+          <option value="Rural">Rural</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Financial Info -->
+    <div class="section-label">Financial Details</div>
+    <div class="grid">
+      <div class="field">
+        <label>Applicant Income (₹ / month)</label>
+        <input type="number" id="ApplicantIncome" placeholder="e.g. 50000" min="0" />
+      </div>
+      <div class="field">
+        <label>Co-applicant Income (₹ / month)</label>
+        <input type="number" id="CoapplicantIncome" placeholder="e.g. 15000" min="0" />
+      </div>
+      <div class="field">
+        <label>Loan Amount (₹ thousands)</label>
+        <input type="number" id="LoanAmount" placeholder="e.g. 120" min="1" />
+      </div>
+      <div class="field">
+        <label>Loan Term (months)</label>
+        <select id="Loan_Amount_Term">
+          <option value="">Select…</option>
+          <option value="360">360 (30 years)</option>
+          <option value="240">240 (20 years)</option>
+          <option value="180">180 (15 years)</option>
+          <option value="120">120 (10 years)</option>
+          <option value="84">84 (7 years)</option>
+          <option value="60">60 (5 years)</option>
+          <option value="36">36 (3 years)</option>
+          <option value="12">12 (1 year)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Credit History</label>
+        <select id="Credit_History">
+          <option value="">Select…</option>
+          <option value="1">Good (meets guidelines)</option>
+          <option value="0">Poor (does not meet)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Submit -->
+    <div class="submit-row">
+      <button class="btn-primary" id="submitBtn" onclick="submitForm()">
+        <span id="btnText">Check Eligibility</span>
+        <div class="spinner" id="spinner"></div>
+        <svg id="btnIcon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Result -->
+    <div id="result"></div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer>
+  <span>LoanIQ · ML Loan Prediction System</span>
+  <span>Powered by FastAPI + Scikit-learn</span>
+</footer>
+
+<script>
+  const API_BASE = "http://localhost:8000";
+
+  function getFieldValue(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+  }
+
+  function setLoading(loading) {
+    const btn     = document.getElementById("submitBtn");
+    const spinner = document.getElementById("spinner");
+    const icon    = document.getElementById("btnIcon");
+    const text    = document.getElementById("btnText");
+
+    btn.disabled = loading;
+    spinner.style.display = loading ? "block" : "none";
+    icon.style.display    = loading ? "none"  : "block";
+    text.textContent = loading ? "Analysing…" : "Check Eligibility";
+  }
+
+  function showError(msg) {
+    const box = document.getElementById("errorBox");
+    box.textContent = msg;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; }, 6000);
+  }
+
+  async function submitForm() {
+    document.getElementById("errorBox").style.display = "none";
+    document.getElementById("result").style.display   = "none";
+
+    // Gather values
+    const fields = [
+      "Gender","Married","Dependents","Education","Self_Employed",
+      "ApplicantIncome","CoapplicantIncome","LoanAmount",
+      "Loan_Amount_Term","Credit_History","Property_Area"
+    ];
+
+    const payload = {};
+    for (const f of fields) {
+      const val = getFieldValue(f);
+      if (val === "") {
+        showError(`Please fill in the "${f.replace(/_/g," ")}" field.`);
+        return;
+      }
+      // Numeric fields
+      if (["ApplicantIncome","CoapplicantIncome","LoanAmount","Loan_Amount_Term"].includes(f)) {
+        payload[f] = parseFloat(val);
+      } else if (f === "Credit_History") {
+        payload[f] = parseInt(val);
+      } else {
+        payload[f] = val;
+      }
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/predict`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Server error. Please try again.");
+      }
+
+      renderResult(data);
+    } catch (err) {
+      showError(err.message || "Could not reach the API. Make sure the server is running on port 8000.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderResult(data) {
+    const approved = data.prediction === 1;
+    const prob     = (data.probability * 100).toFixed(1);
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+      <div class="result-${approved ? 'approved' : 'rejected'}">
+        <div class="result-icon">${approved ? '✅' : '❌'}</div>
+        <div class="result-body" style="flex:1">
+          <h2>${data.label}</h2>
+          <p>${data.message}</p>
+          <div class="prob-bar-wrap">
+            <div class="prob-label">
+              <span>Approval Probability</span>
+              <span>${prob}%</span>
+            </div>
+            <div class="prob-bar">
+              <div class="prob-fill" id="probFill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    resultDiv.style.display = "block";
+
+    // Animate bar
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.getElementById("probFill").style.width = `${prob}%`;
+      });
+    });
+
+    resultDiv.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+</script>
+
+</body>
+</html>
