@@ -81,7 +81,7 @@ class PredictionResponse(BaseModel):
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
-@app.get("/", tags=["Health"])
+@app.get("/health", tags=["Health"])
 def health_check():
     """API health check."""
     return {"status": "ok", "service": "Loan Approval Prediction API", "version": "1.0.0"}
