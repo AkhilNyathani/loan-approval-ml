@@ -128,4 +128,4 @@ if os.path.isdir(frontend_dir):
 
     @app.get("/app", include_in_schema=False)
     def serve_frontend():
-        return FileResponse(os.path.join(frontend_dir, "index.html"))
+        return FileResponse("frontend/index.html")
