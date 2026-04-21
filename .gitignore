@@ -19,7 +19,6 @@ env/
 *.ipynb
 
 # Models (large files — use Git LFS or exclude)
-models/*.pkl
 models/*.joblib
 
 # Data (usually too large for Git)
