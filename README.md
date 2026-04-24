@@ -7,7 +7,7 @@
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-F7931E?style=flat-square&logo=scikit-learn)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker)
 
-🔗 Live Demo: https://loan-approval-ml-kaph.onrender.com/
+🔗 Live Demo: https://loan-approval-ml-kaph.onrender.com/app
 
 ---
 
