@@ -130,6 +130,6 @@ frontend_dir = os.path.join(
 if os.path.isdir(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
-    @app.get("/")
+    @app.get("/app")
     def serve_frontend():
         return FileResponse(os.path.join(frontend_dir, "index.html"))
